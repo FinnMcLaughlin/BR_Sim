@@ -1,16 +1,27 @@
+import player_class
 import time
+from enum import Enum
+
+class tile_object(Enum):
+    NONE = 0
+    DANGER_ZONE = 1
+    PLAYER = 2
 
 class GridTile:
     def __init__(self, x, y):
         self.x = x
         self.y = y
         self.danger_zone = False
+        self.object = tile_object.NONE
+
+    def update_tile_object(self, t_object):
+        self.object = t_object
 
 SMALL_MAP = 5
 MEDIUM_MAP = 11
 LARGE_MAP = 21
 
-def iniatilzeMap(size):
+def initializeMap(size):
     return populate_grid(size, size)
 
 
@@ -27,9 +38,9 @@ def populate_grid(rows, columns):
     return tile_array
 
 
-def encloseRing(grid_map, count):
+def encloseRing(_grid_map, count):
     minimum = count
-    maximum = (len(grid_map)-1) - count
+    maximum = (len(_grid_map)-1) - count
 
     print(minimum)
     print(maximum)
@@ -38,10 +49,11 @@ def encloseRing(grid_map, count):
         for tile in row:
             if tile.x == minimum or tile.x == maximum or tile.y == minimum or tile.y == maximum:
                 tile.danger_zone = True
+                tile.update_tile_object(tile_object.DANGER_ZONE)
 
 
-def displayMap(grid_map):
-    tiles = grid_map
+def displayMap(_grid_map):
+    tiles = _grid_map
 
     for row in tiles:
         row_str = ""
@@ -52,14 +64,20 @@ def displayMap(grid_map):
         print(row_str)
 
 
+def player_turn(_player, _grid_map):
+    surrounding_tiles = _player.identify_new_information(_grid_map)
+
+
 if __name__ == "__main__":
     map_size = MEDIUM_MAP
 
-    grid_map = iniatilzeMap(map_size)
+    grid_map = initializeMap(map_size)
 
     ring_close_turns = map_size // 2
 
     overall_count = 0
+
+    player = player_class.Player(4, 2, 100, None)
 
     while overall_count < ring_close_turns:
         turn_count = 0
@@ -69,6 +87,7 @@ if __name__ == "__main__":
         while turn_count < 3:
             print("Turn: " + str(turn_count))
             time.sleep(3)
+            player_turn(player, grid_map)
             turn_count += 1
 
         encloseRing(grid_map, overall_count)
