@@ -42,9 +42,6 @@ def encloseRing(_grid_map, count):
     minimum = count
     maximum = (len(_grid_map)-1) - count
 
-    print(minimum)
-    print(maximum)
-
     for row in grid_map:
         for tile in row:
             if tile.x == minimum or tile.x == maximum or tile.y == minimum or tile.y == maximum:
@@ -83,7 +80,7 @@ if __name__ == "__main__":
 
     overall_count = 0
 
-    player = player_class.Player(4, 1, 100, None)
+    player = player_class.Player(3, 1, 100, None)
 
     while overall_count < ring_close_turns:
         turn_count = 0
@@ -91,7 +88,7 @@ if __name__ == "__main__":
         displayMap(grid_map)
 
         while turn_count < 3:
-            print("Turn: " + str(turn_count))
+            print("\nTurn: " + str(turn_count))
             time.sleep(3)
             player_turn(player, grid_map)
             turn_count += 1

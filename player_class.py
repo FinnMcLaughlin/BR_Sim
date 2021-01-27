@@ -27,9 +27,9 @@ class Player:
     def check_surroundings(self, tile_map, tile_object):
         surround_tiles = []
 
-        try:
-            surround_tiles.append(tile_map[self.x][self.y + 1].object)
-        except IndexError:
+        if not self.y - 1 < 0:
+            surround_tiles.append(tile_map[self.x][self.y - 1].object)
+        else:
             surround_tiles.append(tile_object.DANGER_ZONE)
 
         try:
@@ -38,13 +38,13 @@ class Player:
             surround_tiles.append(tile_object.DANGER_ZONE)
 
         try:
-            surround_tiles.append(tile_map[self.x][self.y - 1].object)
+            surround_tiles.append(tile_map[self.x][self.y + 1].object)
         except IndexError:
             surround_tiles.append(tile_object.DANGER_ZONE)
 
-        try:
+        if not self.x - 1 < 0:
             surround_tiles.append(tile_map[self.x - 1][self.y].object)
-        except IndexError:
+        else:
             surround_tiles.append(tile_object.DANGER_ZONE)
 
         return surround_tiles
@@ -64,29 +64,32 @@ class Player:
         return danger_tiles
 
     def make_decision(self, danger_tiles):
-        if len(danger_tiles) > 0:
-            for tile in danger_tiles:
-                for index in tile:
-                    if index == 0:
-                        curr_x, curr_y = self.get_current_position()
-                        self.move_player(curr_x, curr_y-1)
-                    if index == 1:
-                        curr_x, curr_y = self.get_current_position()
-                        self.move_player(curr_x-1, curr_y)
-                    if index == 2:
-                        curr_x, curr_y = self.get_current_position()
-                        self.move_player(curr_x, curr_y+1)
-                    if index == 3:
-                        curr_x, curr_y = self.get_current_position()
-                        self.move_player(curr_x+1, curr_y)
-
-                    print(str(index) + " " + str(tile[index]))
-
         # Index 0 - Danger Above - Move Y-1
         # Index 1 - Danger Right - Move X-1
         # Index 2 - Danger Below - Move Y+1
         # Index 3 - Danger Left - Move X+1
 
+        if len(danger_tiles) > 0:
+            for tile in danger_tiles:
+                for index in tile:
+                    print(str(index) + " " + str(tile[index]))
+
+                    if index == 0:
+                        curr_x, curr_y = self.get_current_position()
+                        self.move_player(curr_x, curr_y+1)
+                        return
+                    if index == 1:
+                        curr_x, curr_y = self.get_current_position()
+                        self.move_player(curr_x-1, curr_y)
+                        return
+                    if index == 2:
+                        curr_x, curr_y = self.get_current_position()
+                        self.move_player(curr_x, curr_y-1)
+                        return
+                    if index == 3:
+                        curr_x, curr_y = self.get_current_position()
+                        self.move_player(curr_x+1, curr_y)
+                        return
 
 
     #--Attempt Methods
