@@ -65,11 +65,17 @@ def displayMap(_grid_map):
 
 
 def player_turn(_player, _grid_map):
-    surrounding_tiles = _player.identify_new_information(_grid_map)
+    surrounding_tiles = _player.identify_new_information(_grid_map, tile_object)
+
+    danger_tiles = player.assess_information(surrounding_tiles, tile_object)
+
+    print(danger_tiles)
+
+    player.make_decision(danger_tiles)
 
 
 if __name__ == "__main__":
-    map_size = MEDIUM_MAP
+    map_size = SMALL_MAP
 
     grid_map = initializeMap(map_size)
 
@@ -77,7 +83,7 @@ if __name__ == "__main__":
 
     overall_count = 0
 
-    player = player_class.Player(4, 2, 100, None)
+    player = player_class.Player(4, 1, 100, None)
 
     while overall_count < ring_close_turns:
         turn_count = 0
