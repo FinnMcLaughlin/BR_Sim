@@ -64,9 +64,9 @@ class Player:
         return danger_tiles
 
     def make_decision(self, danger_tiles):
-        # Index 0 - Danger Above - Move Y-1
+        # Index 0 - Danger Above - Move Y+1
         # Index 1 - Danger Right - Move X-1
-        # Index 2 - Danger Below - Move Y+1
+        # Index 2 - Danger Below - Move Y-1
         # Index 3 - Danger Left - Move X+1
 
         if len(danger_tiles) > 0:

@@ -1,11 +1,17 @@
-import player_class
-import time
+from player_class import Player
+from weapon_class import Weapon
 from enum import Enum
+import time
 
 class tile_object(Enum):
     NONE = 0
     DANGER_ZONE = 1
     PLAYER = 2
+
+class weapon_type(Enum):
+    MELEE = 0
+    RANGED = 1
+    SPECIAL = 2
 
 class GridTile:
     def __init__(self, x, y):
@@ -60,6 +66,16 @@ def displayMap(_grid_map):
 
         print(row_str)
 
+# Very basic weapon initialization
+# TODO: Streamline classes and initialization of weapons
+def initializeWeapons():
+    return [
+        Weapon("Knuckle Dusters", weapon_type.MELEE, 14, 1.2, 3, 2, None),
+        Weapon("Crowbar", weapon_type.MELEE, 19, 1.5, 6, 4, None),
+        Weapon("Axe", weapon_type.MELEE, 25, 1.7, 8, 5, None),
+        Weapon("Shotgun", weapon_type.RANGED, 40, 1.8, 4, 9, None)
+    ]
+
 
 def player_turn(_player, _grid_map):
     surrounding_tiles = _player.identify_new_information(_grid_map, tile_object)
@@ -75,12 +91,13 @@ if __name__ == "__main__":
     map_size = SMALL_MAP
 
     grid_map = initializeMap(map_size)
+    all_weapons = initializeWeapons()
 
     ring_close_turns = map_size // 2
 
     overall_count = 0
 
-    player = player_class.Player(3, 1, 100, None)
+    player = Player(3, 1, 100, None)
 
     while overall_count < ring_close_turns:
         turn_count = 0
