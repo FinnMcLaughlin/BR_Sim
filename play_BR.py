@@ -1,6 +1,7 @@
 from player_class import Player
 from weapon_class import Weapon
 from enum import Enum
+import random
 import time
 
 class tile_object(Enum):
@@ -66,6 +67,7 @@ def displayMap(_grid_map):
 
         print(row_str)
 
+
 # Very basic weapon initialization
 # TODO: Streamline classes and initialization of weapons
 def initializeWeapons():
@@ -98,19 +100,44 @@ def get_hit_limit_value(armour_value, mobility_value, attack_speed):
         return round(((armour_value * 6) - ((armour_value * 3) * (attack_speed / mobility_value))) / 5)
 
 
+def calculate_bypass_armour(hit_limit):
+    return ((20 - hit_limit) / 3) * 2
+
+def calculate_hit_damage(weapon_power_value):
+    return random.randrange(int(weapon_power_value / 2), (weapon_power_value + 1))
+
+
 def simulate_combat(attacking_player, enemy_player):
     hit_limit = get_hit_limit_value(enemy_player.get_current_armour(), enemy_player.get_current_mobility(),
                                     attacking_player.get_current_weapon().get_attack_speed())
 
     print("Hit Limit Value: " + str(hit_limit))
 
-    hit = attacking_player.attempt_move(hit_limit)
+    bypass_armour_limit = round(hit_limit + calculate_bypass_armour(hit_limit))
 
-    if hit:
-        enemy_player.take_damage(attacking_player.get_current_weapon().get_power())
+    print("By Pass Limit Value: " + str(bypass_armour_limit))
+
+    roll_value = attacking_player.attempt_move()
+
+    if roll_value == 20:
+        print("!!Critical Hit!!")
+        hit_value = calculate_hit_damage(attacking_player.get_current_weapon().get_power())
+        enemy_player.take_damage((hit_value * attacking_player.get_current_weapon().get_critical_multiplier()))
+
+    elif roll_value >= bypass_armour_limit:
+        print("Player Hit")
+        hit_value = calculate_hit_damage(attacking_player.get_current_weapon().get_power())
+        enemy_player.take_damage(hit_value)
+
+    elif roll_value >= hit_limit:
+        print("Armour Hit")
+        armour_hit = random.randrange(1, 4)
+        enemy_player.take_armour_damage(armour_hit)
+
     else:
-        print("Miss!")
+        print("Miss")
 
+    print("\n")
 
 
 if __name__ == "__main__":
@@ -130,7 +157,8 @@ if __name__ == "__main__":
         simulate_combat(player1, player2)
         simulate_combat(player2, player1)
 
-        print("Player 1 Health: " + str(player1.get_current_health()) + " Player 2 Health: " + str(player2.get_current_health()) + "\n")
+        print("Player 1 Health: " + str(player1.get_current_health()) + " Player 2 Health: " + str(player2.get_current_health())
+              + "\n\n------------------------------------------------------------------------")
 
     '''
     while overall_count < ring_close_turns:

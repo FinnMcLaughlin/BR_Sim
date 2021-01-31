@@ -102,16 +102,8 @@ class Player:
 
 
     #--Attempt Methods
-    def attempt_move(self, limit_value):
-        roll_value = random.randrange(1, 21)
-
-        print("Rolled: " + str(roll_value))
-
-        if roll_value >= limit_value:
-            return True
-        else:
-            return False
-
+    def attempt_move(self):
+        return random.randrange(1, 21)
 
     def move_player(self, new_x, new_y):
         print("Old Position: " + str(self.get_current_position()))
@@ -129,8 +121,11 @@ class Player:
         if self.health < 0:
             self.health = 0
 
-    def update_armour(self, value):
-        self.armour = self.armour + value
+    def take_armour_damage(self, value):
+        self.armour = self.armour - value
+
+        if self.armour < 1:
+            self.armour = 1
 
     def update_mobility(self, value):
         self.mobility = self.mobility + value
