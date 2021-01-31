@@ -1,10 +1,13 @@
+import random
 import json
 
 class Player:
-    def __init__(self, _x, _y, _health, _weapon):
+    def __init__(self, _x, _y, _health, _armour, _mobility, _weapon):
         self.x = _x
         self.y = _y
         self.health = _health
+        self.armour = _armour
+        self.mobility = _mobility
         self.weapon = _weapon
 
     #--General Information Methods
@@ -13,6 +16,12 @@ class Player:
 
     def get_current_health(self):
         return self.health
+
+    def get_current_armour(self):
+        return self.armour
+
+    def get_current_mobility(self):
+        return self.mobility
 
     def get_current_weapon(self):
         return self.weapon
@@ -93,8 +102,16 @@ class Player:
 
 
     #--Attempt Methods
-    def attempt_decision(self):
-        pass
+    def attempt_move(self, limit_value):
+        roll_value = random.randrange(1, 21)
+
+        print("Rolled: " + str(roll_value))
+
+        if roll_value >= limit_value:
+            return True
+        else:
+            return False
+
 
     def move_player(self, new_x, new_y):
         print("Old Position: " + str(self.get_current_position()))
@@ -108,3 +125,12 @@ class Player:
     #--Combat Methods
     def take_damage(self, hit_value):
         self.health = self.health - hit_value
+
+        if self.health < 0:
+            self.health = 0
+
+    def update_armour(self, value):
+        self.armour = self.armour + value
+
+    def update_mobility(self, value):
+        self.mobility = self.mobility + value

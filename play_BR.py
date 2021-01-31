@@ -70,10 +70,10 @@ def displayMap(_grid_map):
 # TODO: Streamline classes and initialization of weapons
 def initializeWeapons():
     return [
-        Weapon("Knuckle Dusters", weapon_type.MELEE, 14, 1.2, 3, 2, None),
-        Weapon("Crowbar", weapon_type.MELEE, 19, 1.5, 6, 4, None),
-        Weapon("Axe", weapon_type.MELEE, 25, 1.7, 8, 5, None),
-        Weapon("Shotgun", weapon_type.RANGED, 40, 1.8, 4, 9, None)
+        Weapon("Knuckle Dusters", weapon_type.MELEE, 14, 1.2, 26, 1, None),
+        Weapon("Crowbar", weapon_type.MELEE, 19, 1.5, 18, 1, None),
+        Weapon("Axe", weapon_type.MELEE, 25, 1.7, 8, 21, None),
+        Weapon("Shotgun", weapon_type.RANGED, 40, 1.8, 4, 28, 2)
     ]
 
 
@@ -87,6 +87,32 @@ def player_turn(_player, _grid_map):
     player.make_decision(danger_tiles)
 
 
+def get_hit_limit_value(armour_value, mobility_value, attack_speed):
+    print("Attacking Speed: " + str(attack_speed))
+
+    print("Enemy Armour: " + str(armour_value) + " Mobility: " + str(mobility_value))
+
+    if attack_speed > mobility_value:
+        return round(((armour_value * 6) - ((armour_value * 3) / (attack_speed/mobility_value))) / 5)
+    elif attack_speed < mobility_value:
+        return round(((armour_value * 6) - ((armour_value * 3) * (attack_speed / mobility_value))) / 5)
+
+
+def simulate_combat(attacking_player, enemy_player):
+    hit_limit = get_hit_limit_value(enemy_player.get_current_armour(), enemy_player.get_current_mobility(),
+                                    attacking_player.get_current_weapon().get_attack_speed())
+
+    print("Hit Limit Value: " + str(hit_limit))
+
+    hit = attacking_player.attempt_move(hit_limit)
+
+    if hit:
+        enemy_player.take_damage(attacking_player.get_current_weapon().get_power())
+    else:
+        print("Miss!")
+
+
+
 if __name__ == "__main__":
     map_size = SMALL_MAP
 
@@ -97,8 +123,16 @@ if __name__ == "__main__":
 
     overall_count = 0
 
-    player = Player(3, 1, 100, None)
+    player1 = Player(3, 1, 100, 10, 28, all_weapons[0])
+    player2 = Player(3, 1, 100, 10, 22, all_weapons[1])
 
+    while player1.get_current_health() > 0 and player2.get_current_health() > 0:
+        simulate_combat(player1, player2)
+        simulate_combat(player2, player1)
+
+        print("Player 1 Health: " + str(player1.get_current_health()) + " Player 2 Health: " + str(player2.get_current_health()) + "\n")
+
+    '''
     while overall_count < ring_close_turns:
         turn_count = 0
 
@@ -116,4 +150,4 @@ if __name__ == "__main__":
 
         overall_count += 1
 
-    displayMap(grid_map)
+    displayMap(grid_map)'''

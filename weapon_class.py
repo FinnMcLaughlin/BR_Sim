@@ -1,12 +1,12 @@
 class Weapon:
-    def __init__(self, _name, _type, _power, _crit_multiplier, _attk_speed, _recover_speed, _ammo):
+    def __init__(self, _name, _type, _power, _crit_multiplier, _attk_speed, _reload_speed, _ammo):
         self.name = _name
         self.type = _type
         self.power = _power
         self.crit_multiplier = _crit_multiplier
         self.attk_speed = _attk_speed
-        self.recover_speed = _recover_speed
-        self.ammo = _ammo
+        self.reload_speed = _reload_speed
+        self.max_ammo = _ammo
 
     def get_type(self):
         return self.type
@@ -21,10 +21,10 @@ class Weapon:
         return self.attk_speed
 
     def get_recovery_speed(self):
-        return self.recover_speed
+        return self.reload_speed
 
-    def get_ammo(self):
-        return self.ammo
+    def get_max_ammo(self):
+        return self.max_ammo
 
     def upgrade_weapon_power(self, additional_power):
         print("Upgrading: " + self.name)
