@@ -111,9 +111,10 @@ def player_turn(_player, _grid_map):
 
     assess_decision(_player, _grid_map, decision, details)
 
-
+# TODO: Clean up to make more effecient, once the logic has been figured out
 def assess_decision(_player, _grid_map, _decision, _details):
     if _decision == "move_player":
+        # Decision: "move_playrer", Details: [[prev_x, prev_y], [new_x, new_y]]
         prev_x = _details[0][0]
         prev_y = _details[0][1]
         new_x = _details[1][0]

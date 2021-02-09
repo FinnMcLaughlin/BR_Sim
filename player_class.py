@@ -26,21 +26,18 @@ class Player:
     def get_current_weapon(self):
         return self.weapon
 
-    '''
-    # Check current tile for objects
-    # Check surrounding tile for objects
-    # If current tile contains enemy and is not next to danger zone -> combat initiated
-    # If current tile contains enemy and is next to danger zone -> move
-    # If current tile is next to danger zone -> move
-    '''
+
     #--Identify Methods
     def identify_new_information(self, tile_map, tile_object):
         surrounding_tiles = self.check_surroundings(tile_map, tile_object)
         return surrounding_tiles
 
-    # Check contents of surrounding tiles
+    # Check contents of current tile and surrounding tiles
+    # TODO: Clean up to make more effecient, once the logic has been figured out
     def check_surroundings(self, tile_map, tile_object):
-        surround_tiles = [tile_map[self.x][self.y].object]
+        surround_tiles = [
+            tile_map[self.x][self.y].object
+        ]
 
         if not self.y - 1 < 0:
             surround_tiles.append(tile_map[self.x][self.y - 1].object)
@@ -65,6 +62,7 @@ class Player:
         return surround_tiles
 
     #--Assessment Methods
+    # Based on the surrounding tiles, whether or not any danger is present is stored in the danger_tile list
     def assess_information(self, surrounding_tiles, tile_objects):
         danger_tiles = []
         surr_tile_index = 0
@@ -79,11 +77,12 @@ class Player:
 
         return danger_tiles
 
+    # TODO: Clean up to make more effecient, once the logic has been figured out
     def make_decision(self, danger_tiles, t_object):
-        # Index 0 - Danger Above - Move Y+1
-        # Index 1 - Danger Right - Move X-1
-        # Index 2 - Danger Below - Move Y-1
-        # Index 3 - Danger Left - Move X+1
+        # Index 1 - Danger Above - Move Y+1
+        # Index 2 - Danger Right - Move X-1
+        # Index 3 - Danger Below - Move Y-1
+        # Index 4 - Danger Left - Move X+1
 
         # return player_action: [action_details]
 
