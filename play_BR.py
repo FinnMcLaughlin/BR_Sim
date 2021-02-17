@@ -1,46 +1,36 @@
 from player_class import Player
 from weapon_class import Weapon
-from enum import Enum
+from Enum_Classes import tile_object_type, weapon_type
 import random
 import time
-
-class tile_object(Enum):
-    NONE = 0
-    DANGER_ZONE = 1
-    PLAYER = 2
-
-class weapon_type(Enum):
-    MELEE = 0
-    RANGED = 1
-    SPECIAL = 2
 
 class GridTile:
     def __init__(self, x, y):
         self.x = x
         self.y = y
         self.danger_zone = False
-        self.object = [tile_object.NONE]
+        self.object = [tile_object_type.NONE]
 
     def update_tile_object(self, t_object):
-        print("\n-----------Previous Tile Object " + str(self.x) + ", " + str(self.y) + " -> " + str(self.object))
-        print("Adding: " + str(t_object))
-        if t_object == tile_object.NONE:
-            self.object = [tile_object.NONE]
+        #print("\n-----------Previous Tile Object " + str(self.x) + ", " + str(self.y) + " -> " + str(self.object))
+        #print("Adding: " + str(t_object))
+        if t_object == tile_object_type.NONE:
+            self.object = [tile_object_type.NONE]
         else:
-            if tile_object.NONE in self.object:
-                self.object.remove(tile_object.NONE)
+            if tile_object_type.NONE in self.object:
+                self.object.remove(tile_object_type.NONE)
             self.object.append(t_object)
 
-        print("\n-----------New Tile Object " + str(self.x) + ", " + str(self.y) + " -> " + str(self.object))
+        #print("-----------New Tile Object " + str(self.x) + ", " + str(self.y) + " -> " + str(self.object))
 
     def remove_tile_object(self, t_object):
         if t_object in self.object:
-            print("\n-----------Previous Tile Object " + str(self.x) + ", " + str(self.y) + " -> " + str(self.object))
-            print("Removing: " + str(t_object))
+            #print("\n-----------Previous Tile Object " + str(self.x) + ", " + str(self.y) + " -> " + str(self.object))
+            #print("Removing: " + str(t_object))
             self.object.pop(self.object.index(t_object))
             if len(self.object) < 1:
-                self.object.append(tile_object.NONE)
-            print("\n-----------New Tile Object " + str(self.x) + ", " + str(self.y) + " -> " + str(self.object))
+                self.object.append(tile_object_type.NONE)
+            #print("-----------New Tile Object " + str(self.x) + ", " + str(self.y) + " -> " + str(self.object))
 
 
 SMALL_MAP = 5
@@ -74,7 +64,7 @@ def encloseRing(_grid_map, count):
             if tile.x == minimum or tile.x == maximum or tile.y == minimum or tile.y == maximum:
                 if not tile.danger_zone:
                     tile.danger_zone = True
-                    tile.update_tile_object(tile_object.DANGER_ZONE)
+                    tile.update_tile_object(tile_object_type.DANGER_ZONE)
 
 
 def displayMap(_grid_map):
@@ -84,7 +74,10 @@ def displayMap(_grid_map):
         row_str = ""
 
         for col in range(len(row)):
-            row_str = row_str + str(row[col].danger_zone) + " "
+            if tile_object_type.PLAYER in row[col].object:
+                row_str = row_str + "player "
+            else:
+                row_str = row_str + str(row[col].danger_zone) + " "
 
         print(row_str)
 
@@ -101,28 +94,24 @@ def initializeWeapons():
 
 
 def player_turn(_player, _grid_map):
-    surrounding_tiles = _player.identify_new_information(_grid_map, tile_object)
+    info_json = _player.identify_new_information(_grid_map)
 
-    danger_tiles = _player.assess_information(surrounding_tiles, tile_object)
-
-    print(danger_tiles)
-
-    decision, details =_player.make_decision(danger_tiles, tile_object)
+    decision, details = _player.make_decision(info_json)
 
     assess_decision(_player, _grid_map, decision, details)
 
 # TODO: Clean up to make more effecient, once the logic has been figured out
 def assess_decision(_player, _grid_map, _decision, _details):
     if _decision == "move_player":
-        # Decision: "move_playrer", Details: [[prev_x, prev_y], [new_x, new_y]]
+        # Decision: "move_player", Details: [[prev_x, prev_y], [new_x, new_y]]
         prev_x = _details[0][0]
         prev_y = _details[0][1]
         new_x = _details[1][0]
         new_y = _details[1][1]
 
-        _grid_map[prev_x][prev_y].remove_tile_object(tile_object.PLAYER)
+        _grid_map[prev_x][prev_y].remove_tile_object(tile_object_type.PLAYER)
         _player.move_player(new_x, new_y)
-        _grid_map[new_x][new_y].update_tile_object(tile_object.PLAYER)
+        _grid_map[new_x][new_y].update_tile_object(tile_object_type.PLAYER)
 
     if _decision == "attack_enemy":
         print("ATTACK")
@@ -191,19 +180,26 @@ if __name__ == "__main__":
 
     overall_count = 0
 
-    player1 = Player(3, 1, 100, 10, 28, all_weapons[0])
-    grid_map[3][1].update_tile_object(tile_object.PLAYER)
-    player2 = Player(3, 1, 100, 10, 22, all_weapons[1])
-    # grid_map[3][1].update_tile_object(tile_object.PLAYER)
+    player1 = Player("Player 1", 3, 1, 100, 10, 28, all_weapons[0])
+    grid_map[3][1].update_tile_object(tile_object_type.PLAYER)
+    player2 = Player("Player 2", 0, 2, 100, 10, 22, all_weapons[1])
+    grid_map[0][2].update_tile_object(tile_object_type.PLAYER)
+
+    '''displayMap(grid_map)
+    player_turn(player1, grid_map)
+    player_turn(player2, grid_map)
+    displayMap(grid_map)'''
+
+
     '''
     while player1.get_current_health() > 0 and player2.get_current_health() > 0:
         simulate_combat(player1, player2)
         simulate_combat(player2, player1)
 
         print("Player 1 Health: " + str(player1.get_current_health()) + " Player 2 Health: " + str(player2.get_current_health())
-              + "\n\n------------------------------------------------------------------------")
+              + "\n\n------------------------------------------------------------------------")'''
 
-    '''
+    
     while overall_count < ring_close_turns:
         turn_count = 0
 
@@ -213,6 +209,7 @@ if __name__ == "__main__":
             print("\nTurn: " + str(turn_count))
             time.sleep(3)
             player_turn(player1, grid_map)
+            player_turn(player2, grid_map)
             turn_count += 1
 
         encloseRing(grid_map, overall_count)
