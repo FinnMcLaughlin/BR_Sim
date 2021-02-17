@@ -41,8 +41,14 @@ LARGE_MAP = 21
 def initializeMap(size):
     return populate_grid(size, size)
 
-
 def populate_grid(rows, columns):
+    """
+    Method to create a 2D array that represents the game map, where each tile contains an instance of the GridTile class
+
+    :param rows: the amount of rows in the 2D array
+    :param columns: the amount of columns in the 2D array
+    :return: the initialized 2D array that represents the game map
+    """
     tile_array = []
 
     for x in range(0, rows):
@@ -54,8 +60,15 @@ def populate_grid(rows, columns):
 
     return tile_array
 
-
 def encloseRing(_grid_map, count):
+    """
+    Method to periodically minimize the safe area of the map that the players can be inside of without them losing
+    health. The method changes the danger zone boolean of each of the outer most safe tiles to True every x amount of
+    turns.
+
+    :param _grid_map: 2D array that represents the game map
+    :param count: value of how many times the ring has closed since the beginning of the game
+    """
     minimum = count
     maximum = (len(_grid_map)-1) - count
 
@@ -66,8 +79,12 @@ def encloseRing(_grid_map, count):
                     tile.danger_zone = True
                     tile.update_tile_object(tile_object_type.DANGER_ZONE)
 
-
 def displayMap(_grid_map):
+    """
+    Method used for testing to display the current state of the map; the size, player locations, danger zone locations etc.
+
+    :param _grid_map: 2D array that represents the game map
+    """
     tiles = _grid_map
 
     for row in tiles:
@@ -82,9 +99,15 @@ def displayMap(_grid_map):
         print(row_str)
 
 
-# Very basic weapon initialization
-# TODO: Streamline classes and initialization of weapons
+#--Weapon Initialization
 def initializeWeapons():
+    """
+    Very basic weapon initialization for testing current combat functionality
+
+    :return: a list of 4 weapon instances
+
+    # TODO: Streamline classes and initialization of weapons
+    """
     return [
         Weapon("Knuckle Dusters", weapon_type.MELEE, 14, 1.2, 26, 1, None),
         Weapon("Crowbar", weapon_type.MELEE, 19, 1.5, 18, 1, None),
@@ -93,15 +116,39 @@ def initializeWeapons():
     ]
 
 
+#--Player Turn Functionality
 def player_turn(_player, _grid_map):
+    """
+    Method to carry out a given player's turn, which follows these steps:
+        - Identify New Information: The player takes into account all surrounding information, as well as the current
+        status of the player (health, current weapon & equipment etc.)
+        - Make Decision: Based on the information gathered in the previos step, the player contemplates all potential
+        decisions it should make for it's turn, concluding with a final decision, and the details of the decision made
+        - Assess Decision: Based on the decision made by the player, and the details of the decision, the player will
+        then attempt to carry out the decision as an action, which might change the state of the player or the map
+
+    :param _player: the player who's turn is being made
+    :param _grid_map: 2D array that represents the game map
+    """
     info_json = _player.identify_new_information(_grid_map)
 
     decision, details = _player.make_decision(info_json)
 
     assess_decision(_player, _grid_map, decision, details)
 
-# TODO: Clean up to make more effecient, once the logic has been figured out
 def assess_decision(_player, _grid_map, _decision, _details):
+    """
+    Method to attempt to carry out the action decided by the player on their turn, as well as updating the map when
+    necessary
+
+    :param _player: the player who's turn is being made
+    :param _grid_map: 2D array that represents the game map
+    :param _decision: the final decision made by the player
+    :param _details: the details of the decision made by the player
+
+    # TODO: Clean up to make more efficient, once the logic has been figured out
+    # TODO: Add functionality to include the following actions: Combat, Looting, Healing
+    """
     if _decision == "move_player":
         # Decision: "move_player", Details: [[prev_x, prev_y], [new_x, new_y]]
         prev_x = _details[0][0]
@@ -122,6 +169,16 @@ def assess_decision(_player, _grid_map, _decision, _details):
 
 #--Combat Functionality
 def get_hit_limit_value(armour_value, mobility_value, attack_speed):
+    """
+    Method to calculate the minimum value the attacking player needs to roll on a D20 dice to hit the target player, which
+    is based on the attack speed of the attacking player, as well as the armour value and mobility value of the target
+    player
+
+    :param armour_value: the armour value of the target player
+    :param mobility_value: the mobility value of the target player
+    :param attack_speed: the attack speed of the attacking player
+    :return: the minimum value needed to not miss the target player
+    """
     print("Attacking Speed: " + str(attack_speed))
 
     print("Enemy Armour: " + str(armour_value) + " Mobility: " + str(mobility_value))
@@ -132,13 +189,40 @@ def get_hit_limit_value(armour_value, mobility_value, attack_speed):
         return round(((armour_value * 6) - ((armour_value * 3) * (attack_speed / mobility_value))) / 5)
 
 def calculate_bypass_armour(hit_limit):
+    """
+    Method to calculate the minimum value the attacking player needs to roll on a D20 dice to bypass the target player's
+    armour and hit them directly
+
+    :param hit_limit: the hit limit value calculated as the minimum value the attacking player needs to roll on a D20
+    dice to hit the target player
+    :return: the minimum value needed to hit the target player directly
+    """
     return ((20 - hit_limit) / 3) * 2
 
 def calculate_hit_damage(weapon_power_value):
+    """
+    Method to calculate the damage done to the target player. This is calculated by getting a random value between half
+    the weapon power of the attacking player's weapon and the total weapon power of the attacking player's weapon
+
+    :param weapon_power_value: the weapon power of the attacking player's weapon
+    :return: the damage that the attacking player's attack has done to the target player
+    """
     return random.randrange(int(weapon_power_value / 2), (weapon_power_value + 1))
 
-def simulate_combat(attacking_player, enemy_player):
-    hit_limit = get_hit_limit_value(enemy_player.get_current_armour(), enemy_player.get_current_mobility(),
+def simulate_combat(attacking_player, target_player):
+    """
+    Simulation of an attack by one player to another. Combat simulation takes the following steps:
+        - Calculating the hit limit value: Getting the minimum value the attacking player must roll on a D20 dice to not
+        miss the target player
+        - Calculating bypassing armour limit: Based on the hit limit value, the minimum value for the attacking player to
+        bypass the armour and hit the target player directly is calculated
+        - Attack attempt: Once the hit limit value and bypass armour value have been calculated, the attacking player
+        attempts the action (i.e. gets a random integer between 1 & 20), hoping to successfully hit the target player
+
+    :param attacking_player: the player who is attacking
+    :param target_player: the player who is targeted
+    """
+    hit_limit = get_hit_limit_value(target_player.get_current_armour(), target_player.get_current_mobility(),
                                     attacking_player.get_current_weapon().get_attack_speed())
 
     print("Hit Limit Value: " + str(hit_limit))
@@ -152,17 +236,17 @@ def simulate_combat(attacking_player, enemy_player):
     if roll_value == 20:
         print("!!Critical Hit!!")
         hit_value = calculate_hit_damage(attacking_player.get_current_weapon().get_power())
-        enemy_player.take_damage((hit_value * attacking_player.get_current_weapon().get_critical_multiplier()))
+        target_player.take_damage((hit_value * attacking_player.get_current_weapon().get_critical_multiplier()))
 
     elif roll_value >= bypass_armour_limit:
         print("Player Hit")
         hit_value = calculate_hit_damage(attacking_player.get_current_weapon().get_power())
-        enemy_player.take_damage(hit_value)
+        target_player.take_damage(hit_value)
 
     elif roll_value >= hit_limit:
         print("Armour Hit")
         armour_hit = random.randrange(1, 4)
-        enemy_player.take_armour_damage(armour_hit)
+        target_player.take_armour_damage(armour_hit)
 
     else:
         print("Miss")
@@ -170,6 +254,7 @@ def simulate_combat(attacking_player, enemy_player):
     print("\n")
 
 
+#--Main
 if __name__ == "__main__":
     map_size = SMALL_MAP
 

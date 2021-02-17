@@ -1,4 +1,3 @@
-from Enum_Classes import tile_object_type, weapon_type
 import random
 import json
 
@@ -33,8 +32,17 @@ class Player:
 
 
     #--Identify Methods
-    # Gets surrounding tile info, updated health, combat info etc.
     def identify_new_information(self, tile_map):
+        """
+        Method to get the contents of the surrounding tiles, the players current health, combat information etc. that will
+        be factored into the decision made by the player each time it is their turn to perform an action
+
+        :param tile_map: 2D array containing information on each tile in the map
+        :return: json object of all necessary information to be factored into the player's decision for what action to
+        carry out on their turn
+
+        # TODO: Add functionality to include the following in the JSON object: Combat Information, Current Weapon & Equipment
+        """
         info_json = "{\"surr_tiles\": " + str(self.check_surroundings(tile_map)) +\
                     ", \"curr_health\": " + str(self.get_current_health()) + \
                     "}"
@@ -42,41 +50,65 @@ class Player:
         return json.loads(info_json)
 
     def update_surrounding_tile_object_arrays(self, d_zone_array, enemy_array, tile, tile_pos):
+        """
+        Function that checks a given tiles object based on the enum class 'tile object type' and updates the respective
+        list with it's position in relation to the player's current position
+
+        :param d_zone_array: list containing the index of the danger zone in relation to the player's current position
+        :param enemy_array: list containing the index of the enemy position(s) in relation to the player's current position
+        :param tile: the tile that is being checked
+        :param tile_pos: the index of the tile in relation to the current position of the player
+        :return: the updated lists of the danger_zone & enemy array
+
+        # TODO: Update so that the tile the player is currently in checks for more than one player object before declaring an enemy is present
+        # TODO: Add functionality to include the following in the surround check: Buildings
+        """
         for t_object in tile.object:
             if t_object.value == 1:
                 d_zone_array.append(tile_pos)
-            # TODO: Update so that the tile the player is currently in checks for more than one player object before declaring an enemy is present
             if t_object.value == 2:
                 enemy_array.append(tile_pos)
 
         return d_zone_array, enemy_array
 
-    # Check contents of current tile and surrounding tiles
-    # TODO: Clean up to make more effecient, once the logic has been figured out
     def check_surroundings(self, tile_map):
+        """
+        Method to return information on the player's surrounding tiles, that will be factored into the decision made on
+        the player's turn
+
+        :param tile_map: 2D array containing information on each tile in the map
+        :return: json string of lists containing the index of their respective danger in relation to the player
+
+        # TODO: Clean up to make more efficient, once the logic has been figured out
+        """
+
         danger_zone_coords = []
         enemy_zone_coords = []
         # building_zone_coords = []
 
+        # Tile the player is currently in
         self.update_surrounding_tile_object_arrays(danger_zone_coords, enemy_zone_coords, tile_map[self.x][self.y], 0)
 
+        # Tile north of player
         if not self.x - 1 < 0:
             self.update_surrounding_tile_object_arrays(danger_zone_coords, enemy_zone_coords, tile_map[self.x-1][self.y], 1)
         else:
             danger_zone_coords.append(1)
 
+        # Tile east of player
         try:
             self.update_surrounding_tile_object_arrays(danger_zone_coords, enemy_zone_coords, tile_map[self.x][self.y+1], 2)
         except IndexError:
             danger_zone_coords.append(2)
 
+        # Tile south of player
         try:
             self.update_surrounding_tile_object_arrays(danger_zone_coords, enemy_zone_coords, tile_map[self.x+1][self.y], 3)
         except IndexError:
             danger_zone_coords.append(3)
 
+        # Tile west of player
         if not self.y - 1 < 0:
-
             self.update_surrounding_tile_object_arrays(danger_zone_coords, enemy_zone_coords, tile_map[self.x][self.y-1], 4)
         else:
             danger_zone_coords.append(4)
@@ -84,14 +116,20 @@ class Player:
         return "{\"danger_zone\": " + str(danger_zone_coords)+ ", \"enemy\": " + str(enemy_zone_coords) + "}"
 
     #--Assessment Methods
-    # Based on the surrounding tiles, whether or not any danger is present is stored in the danger_tile list
     def assess_information(self, _json_info):
-        # Index 1 - Danger Above - Move X+1
-        # Index 2 - Danger Right - Move Y-1
-        # Index 3 - Danger Below - Move X-1
-        # Index 4 - Danger Left - Move Y+1
+        """
+        Based on the info_json object, decisions are made and formatted into a decision_json object
 
-        # return player_action: [action_details]
+        Index 1 - Danger Above - Move X+1 (1 row down)
+        Index 2 - Danger Right - Move Y-1 (1 column left)
+        Index 3 - Danger Below - Move X-1 (1 row up)
+        Index 4 - Danger Left - Move Y+1  (1 column right)
+
+        :param _json_info: json object containing information on surrounding tiles
+        :return: all possible decisions the player can make, formatted as json object
+
+        TODO: Clean up to make more efficient, once the logic has been figured out
+        """
 
         decision_json = "[]"
 
@@ -115,8 +153,17 @@ class Player:
 
         return json.loads(decision_json)
 
-    # TODO: Clean up to make more effecient, once the logic has been figured out. Add make decsion for combat, looting etc.
     def make_decision(self, _info_json):
+        """
+        Method to make a decision on behalf of the player based on info JSON object passed in, which is subsequently
+        passed to the assess_information method, for a list of possible decisions that the player should make
+
+        :param _info_json: json object containing information on surrounding tiles
+        :return: json object containing information on the move decided by the player
+
+        # TODO: Clean up to make more effecient, once the logic has been figured out. Add make decsion for combat, looting etc.
+        # TODO: Add functionality to include the following in the surround check: Combat, Looting, Healing
+        """
         decision_json = self.assess_information(_info_json)
 
         print(decision_json)
@@ -131,9 +178,21 @@ class Player:
 
     #--Attempt Methods
     def attempt_action(self):
+        """
+        Method that essentially rolls a D20 dice, representing how successful the player's attempt at performing an
+        action
+
+        :return: a random integer from 1 - 20
+        """
         return random.randrange(1, 21)
 
     def move_player(self, new_x, new_y):
+        """
+        Method to move the player to a new position on the map
+
+        :param new_x: New X Coordinate of the player (Row)
+        :param new_y: New Y Coordinate of the player (Column)
+        """
         print("Old Position: " + str(self.get_current_position()))
 
         self.x = new_x
@@ -144,16 +203,34 @@ class Player:
 
     #--Combat Methods
     def take_damage(self, hit_value):
+        """
+        Method to take damage to the player's health when in combat situation. If the player's health drops below 0, the
+        player's health is reset to 0, as that is the lowest it can potentially be
+
+        :param hit_value: The value of the damage taken from the player's health
+        """
         self.health = self.health - hit_value
 
         if self.health < 0:
             self.health = 0
 
     def take_armour_damage(self, value):
+        """
+        Method to take damage to the player's armour when in combat situation. If the player's armour drops below 1, the
+        player's armour is reset to 1, as that is the lowest it can potentially be
+
+        :param value: The value of the damage taken from the player's armour
+        """
         self.armour = self.armour - value
 
         if self.armour < 1:
             self.armour = 1
 
     def update_mobility(self, value):
+        """
+        Updates the player's mobility. This value may rise or fall based on the total weight of the equipment the player
+        is carrying (weapon, armour etc.)
+
+        :param value: The value that player's mobility will update by (can be a negative value)
+        """
         self.mobility = self.mobility + value
