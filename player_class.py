@@ -60,7 +60,6 @@ class Player:
         :param tile_pos: the index of the tile in relation to the current position of the player
         :return: the updated lists of the danger_zone & enemy array
 
-        # TODO: Update so that the tile the player is currently in checks for more than one player object before declaring an enemy is present
         # TODO: Add functionality to include the following in the surround check: Buildings
         """
         for t_object in tile.object:
@@ -68,6 +67,9 @@ class Player:
                 d_zone_array.append(tile_pos)
             if t_object.value == 2:
                 enemy_array.append(tile_pos)
+            if t_object.value == 3:
+                #building_array.append(tile_pos)
+                continue
 
         return d_zone_array, enemy_array
 
@@ -113,6 +115,9 @@ class Player:
         else:
             danger_zone_coords.append(4)
 
+        # Removes one instance of a player object from the player's current tile, as that is the player themselves
+        enemy_zone_coords.remove(0)
+
         return "{\"danger_zone\": " + str(danger_zone_coords)+ ", \"enemy\": " + str(enemy_zone_coords) + "}"
 
     #--Assessment Methods
@@ -133,7 +138,8 @@ class Player:
 
         decision_json = "[]"
 
-        if len(_json_info['surr_tiles']['danger_zone']) > 0:
+        # If all surrounding tiles are danger_zone, then the player can no longer move
+        if 0 < len(_json_info['surr_tiles']['danger_zone']) < 4:
             curr_x, curr_y = self.get_current_position()
 
             danger_index = _json_info['surr_tiles']['danger_zone'][0]
@@ -147,6 +153,29 @@ class Player:
             if danger_index == 3:
                 move_decision = move_decision + str([[curr_x, curr_y], [curr_x - 1, curr_y]]) + "}"
             if danger_index == 4:
+                move_decision = move_decision + str([[curr_x, curr_y], [curr_x, curr_y + 1]]) + "}"
+
+            decision_json = decision_json[:-1] + move_decision + "]"
+
+        elif len(_json_info['surr_tiles']['enemy']) > 0:
+            curr_x, curr_y = self.get_current_position()
+
+            enemy_index = _json_info['surr_tiles']['enemy'][0]
+
+            if enemy_index == 0:
+                decision_json = decision_json[:-1] + "{\"attack_enemy\": []} ]"
+                print(decision_json)
+                return json.loads(decision_json)
+
+            move_decision = "{\"move_player\": "
+
+            if enemy_index == 1:
+                move_decision = move_decision + str([[curr_x, curr_y], [curr_x + 1, curr_y]]) + "}"
+            if enemy_index == 2:
+                move_decision = move_decision + str([[curr_x, curr_y], [curr_x, curr_y - 1]]) + "}"
+            if enemy_index == 3:
+                move_decision = move_decision + str([[curr_x, curr_y], [curr_x - 1, curr_y]]) + "}"
+            if enemy_index == 4:
                 move_decision = move_decision + str([[curr_x, curr_y], [curr_x, curr_y + 1]]) + "}"
 
             decision_json = decision_json[:-1] + move_decision + "]"
@@ -167,9 +196,12 @@ class Player:
         decision_json = self.assess_information(_info_json)
 
         print(decision_json)
+
         if len(decision_json) > 0:
             for key in decision_json[0]:
                 if key == "move_player":
+                    return key, decision_json[0][key]
+                if key == "attack_enemy":
                     return key, decision_json[0][key]
 
         else:

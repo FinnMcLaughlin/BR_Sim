@@ -37,6 +37,8 @@ SMALL_MAP = 5
 MEDIUM_MAP = 11
 LARGE_MAP = 21
 
+all_players = []
+
 #--Map Functionality
 def initializeMap(size):
     return populate_grid(size, size)
@@ -132,6 +134,8 @@ def player_turn(_player, _grid_map):
     """
     info_json = _player.identify_new_information(_grid_map)
 
+    print(info_json)
+
     decision, details = _player.make_decision(info_json)
 
     assess_decision(_player, _grid_map, decision, details)
@@ -161,7 +165,11 @@ def assess_decision(_player, _grid_map, _decision, _details):
         _grid_map[new_x][new_y].update_tile_object(tile_object_type.PLAYER)
 
     if _decision == "attack_enemy":
-        print("ATTACK")
+        for other_player in all_players:
+            if _player.get_current_position() == other_player.get_current_position() and not _player.get_player_name() == other_player.get_player_name():
+                simulate_combat(_player, other_player)
+                return
+
 
     if _decision == "no_moves":
         print("No Move")
@@ -234,17 +242,19 @@ def simulate_combat(attacking_player, target_player):
     roll_value = attacking_player.attempt_action()
 
     if roll_value == 20:
-        print("!!Critical Hit!!")
-        hit_value = calculate_hit_damage(attacking_player.get_current_weapon().get_power())
-        target_player.take_damage((hit_value * attacking_player.get_current_weapon().get_critical_multiplier()))
+        print("!!Critical Hit!! on " + str(target_player.get_player_name()))
+        hit_value = round(calculate_hit_damage(attacking_player.get_current_weapon().get_power()) * attacking_player.get_current_weapon().get_critical_multiplier())
+        print("Hit For: " + str(hit_value))
+        target_player.take_damage(hit_value)
 
     elif roll_value >= bypass_armour_limit:
-        print("Player Hit")
+        print(str(target_player.get_player_name()) + " Hit")
         hit_value = calculate_hit_damage(attacking_player.get_current_weapon().get_power())
+        print("Hit For: " + str(hit_value))
         target_player.take_damage(hit_value)
 
     elif roll_value >= hit_limit:
-        print("Armour Hit")
+        print(str(target_player.get_player_name()) + " Armour Hit")
         armour_hit = random.randrange(1, 4)
         target_player.take_armour_damage(armour_hit)
 
@@ -256,25 +266,30 @@ def simulate_combat(attacking_player, target_player):
 
 #--Main
 if __name__ == "__main__":
-    map_size = SMALL_MAP
+    map_size = MEDIUM_MAP
 
     grid_map = initializeMap(map_size)
+
     all_weapons = initializeWeapons()
 
     ring_close_turns = map_size // 2
 
     overall_count = 0
 
-    player1 = Player("Player 1", 3, 1, 100, 10, 28, all_weapons[0])
-    grid_map[3][1].update_tile_object(tile_object_type.PLAYER)
-    player2 = Player("Player 2", 0, 2, 100, 10, 22, all_weapons[1])
-    grid_map[0][2].update_tile_object(tile_object_type.PLAYER)
+    p1_start_x, p1_start_y = 9, 1
+    p2_start_x, p2_start_y = 10, 3
 
-    '''displayMap(grid_map)
-    player_turn(player1, grid_map)
-    player_turn(player2, grid_map)
-    displayMap(grid_map)'''
+    player1 = Player("Player 1", p1_start_x, p1_start_y, 100, 10, 28, all_weapons[0])
+    all_players.append(player1)
+    grid_map[p1_start_x][p1_start_y].update_tile_object(tile_object_type.PLAYER)
 
+    player2 = Player("Player 2", p2_start_x, p2_start_y, 100, 10, 22, all_weapons[1])
+    all_players.append(player2)
+    grid_map[p2_start_x][p2_start_y].update_tile_object(tile_object_type.PLAYER)
+
+    #displayMap(grid_map)
+    #player_turn(player1, grid_map)
+    #player_turn(player2, grid_map)
 
     '''
     while player1.get_current_health() > 0 and player2.get_current_health() > 0:
@@ -284,7 +299,7 @@ if __name__ == "__main__":
         print("Player 1 Health: " + str(player1.get_current_health()) + " Player 2 Health: " + str(player2.get_current_health())
               + "\n\n------------------------------------------------------------------------")'''
 
-    
+
     while overall_count < ring_close_turns:
         turn_count = 0
 
@@ -303,4 +318,15 @@ if __name__ == "__main__":
 
         overall_count += 1
 
-    displayMap(grid_map)
+    while len(all_players) > 1:
+        if player1.get_current_health() > 0:
+            player_turn(player1, grid_map)
+        else:
+            all_players.remove(player1)
+        time.sleep(2)
+        if player2.get_current_health() > 0:
+            player_turn(player2, grid_map)
+        else:
+            all_players.remove(player2)
+
+    print("Winner is: " + str(all_players[0].get_player_name()))
